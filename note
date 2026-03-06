@@ -1,0 +1,9 @@
+http://localhost:8000/docs to run on web
+
+docker-compose down -v
+docker-compose up --build    to execute
+
+
+backend activate: python -m uvicorn app.main:app --reload --port 8000
+                    
+frontend activate:  npm start      

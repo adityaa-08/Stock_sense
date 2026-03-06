@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StockSense — Intelligent Market Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #050a0f;
+    --surface: #0d1620;
+    --border: #1a2d42;
+    --accent: #00d4aa;
+    --accent2: #ff6b35;
+    --text: #e8f0f7;
+    --muted: #5a7a94;
+    --up: #00d4aa;
+    --down: #ff4757;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4rem;
+    background: rgba(5,10,15,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 900;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--text); }
+  nav ul { list-style: none; display: flex; gap: 2.5rem; }
+  nav ul a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem; text-decoration: none;
+    color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  nav ul a:hover, nav ul a.active { color: var(--accent); }
+  .nav-cta {
+    background: var(--accent); color: var(--bg) !important;
+    padding: 0.5rem 1.4rem; border-radius: 4px; font-weight: 500;
+  }
+  .nav-cta:hover { background: #00e8bb !important; color: var(--bg) !important; }
+
+  /* ─── PAGES ─── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ─── HOME ─── */
+  #home { min-height: 100vh; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 8rem 4rem 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 60% at 70% 50%, rgba(0,212,170,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 80% at 10% 80%, rgba(255,107,53,0.05) 0%, transparent 60%);
+  }
+  .grid-bg {
+    position: absolute; inset: 0; opacity: 0.04;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .ticker-bar {
+    position: absolute; top: 5rem; left: 0; right: 0;
+    height: 2.5rem; background: var(--surface);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    overflow: hidden; display: flex; align-items: center;
+  }
+  .ticker-track {
+    display: flex; gap: 3rem;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+  }
+  .ticker-item {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); display: flex; gap: 0.6rem; align-items: center;
+  }
+  .ticker-item .sym { color: var(--text); font-weight: 500; }
+  .ticker-item .up { color: var(--up); }
+  .ticker-item .dn { color: var(--down); }
+  @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  .hero-content {
+    position: relative; z-index: 1; max-width: 700px;
+  }
+  .hero-tag {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase;
+    border: 1px solid rgba(0,212,170,0.3); padding: 0.3rem 0.8rem;
+    border-radius: 2px; display: inline-block; margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 900;
+    line-height: 1.05; margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero p {
+    font-size: 1.1rem; color: var(--muted); line-height: 1.8;
+    max-width: 520px; margin-bottom: 2.5rem;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-btns {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .btn-primary {
+    background: var(--accent); color: var(--bg);
+    padding: 0.85rem 2.2rem; border-radius: 4px;
+    font-weight: 600; font-size: 0.95rem; cursor: pointer;
+    border: none; transition: all 0.2s; letter-spacing: 0.02em;
+  }
+  .btn-primary:hover { background: #00e8bb; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,170,0.3); }
+  .btn-ghost {
+    background: transparent; color: var(--text);
+    padding: 0.85rem 2.2rem; border-radius: 4px;
+    font-size: 0.95rem; cursor: pointer;
+    border: 1px solid var(--border); transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* floating chart */
+  .hero-visual {
+    position: absolute; right: 4rem; top: 50%; transform: translateY(-50%);
+    width: 420px; opacity: 0.9;
+    animation: floatIn 0.8s 0.4s ease both;
+  }
+  .chart-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; position: relative;
+  }
+  .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+  .chart-title { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
+  .chart-price { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; }
+  .badge-up { background: rgba(0,212,170,0.15); color: var(--up); padding: 0.25rem 0.6rem; border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 0.72rem; }
+  svg.sparkline { width: 100%; height: 80px; }
+  .spark-area { fill: url(#spark-grad); opacity: 0.3; }
+  .spark-line { fill: none; stroke: var(--accent); stroke-width: 2; }
+  .chart-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-top: 1.2rem; border-top: 1px solid var(--border); padding-top: 1.2rem; }
+  .stat-item .label { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-item .val { font-size: 0.9rem; font-weight: 500; margin-top: 0.2rem; }
+
+  /* mini cards floating */
+  .mini-card {
+    position: absolute; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.7rem 1rem; font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  }
+  .mini-card-1 { top: -1.5rem; right: 1rem; }
+  .mini-card-2 { bottom: -1rem; left: -1.5rem; }
+  .mini-sym { color: var(--muted); margin-bottom: 0.2rem; }
+  .mini-val { font-weight: 500; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes floatIn { from{opacity:0;transform:translateY(calc(-50% + 20px))} to{opacity:0.9;transform:translateY(-50%)} }
+
+  /* FEATURES */
+  .features {
+    padding: 6rem 4rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.8rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; margin-bottom: 3.5rem;
+    max-width: 500px; line-height: 1.2;
+  }
+  .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+  .feat-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 2rem;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .feat-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+  .feat-icon {
+    width: 44px; height: 44px; border-radius: 8px;
+    background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 1.2rem;
+  }
+  .feat-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.6rem; }
+  .feat-card p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+
+  /* TECH STACK */
+  .stack-section { padding: 5rem 4rem; }
+  .stack-pills { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2.5rem; }
+  .pill {
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    padding: 0.5rem 1.2rem; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--muted);
+    transition: all 0.2s;
+  }
+  .pill:hover { border-color: var(--accent); color: var(--accent); }
+  .pill.accent { border-color: rgba(0,212,170,0.4); color: var(--accent); background: rgba(0,212,170,0.05); }
+
+  /* HOW IT WORKS */
+  .how-section {
+    padding: 6rem 4rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 2rem; margin-top: 3.5rem; position: relative; }
+  .steps::before {
+    content:''; position:absolute; top:1.5rem; left:10%; right:10%;
+    height:1px; background: linear-gradient(90deg, transparent, var(--border), var(--border), transparent);
+  }
+  .step { text-align: center; }
+  .step-num {
+    width: 3rem; height: 3rem; border-radius: 50%;
+    background: var(--bg); border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    color: var(--accent); margin: 0 auto 1.2rem; position: relative; z-index: 1;
+  }
+  .step h4 { font-size: 0.92rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .step p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+  /* CTA */
+  .cta-section {
+    padding: 6rem 4rem; text-align: center;
+    background: linear-gradient(180deg, var(--bg) 0%, rgba(0,212,170,0.03) 100%);
+    border-top: 1px solid var(--border);
+  }
+  .cta-section h2 { font-family: 'Playfair Display', serif; font-size: clamp(2rem,4vw,3rem); font-weight: 700; margin-bottom: 1rem; }
+  .cta-section p { color: var(--muted); margin-bottom: 2.5rem; font-size: 1rem; }
+
+  /* ─── ANALYSIS PAGE ─── */
+  #analysis { padding: 6rem 4rem 4rem; min-height: 100vh; }
+  .analysis-header { margin-bottom: 2.5rem; }
+  .analysis-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem,4vw,3rem); font-weight: 700; margin-bottom: 0.5rem;
+  }
+  .analysis-header p { color: var(--muted); font-size: 0.95rem; }
+
+  /* search bar */
+  .search-row {
+    display: flex; gap: 1rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1; min-width: 200px;
+    display: flex; align-items: center; gap: 0.8rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0 1.2rem;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus-within { border-color: var(--accent); }
+  .search-box svg { color: var(--muted); flex-shrink: 0; }
+  .search-box input {
+    background: none; border: none; outline: none;
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 0.9rem; width: 100%; padding: 0.9rem 0;
+    text-transform: uppercase;
+  }
+  .search-box input::placeholder { color: var(--muted); text-transform: none; }
+  select.filter-sel {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 0.9rem 1.2rem;
+    font-family: 'DM Mono', monospace; font-size: 0.82rem; cursor: pointer;
+    outline: none; transition: border-color 0.2s;
+  }
+  select.filter-sel:focus { border-color: var(--accent); }
+  .btn-analyse {
+    background: var(--accent); color: var(--bg);
+    border: none; border-radius: 8px;
+    padding: 0 2rem; font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-analyse:hover { background: #00e8bb; box-shadow: 0 6px 20px rgba(0,212,170,0.3); }
+
+  /* QUICK PICKS */
+  .quick-label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); margin-bottom: 0.8rem; letter-spacing: 0.1em; }
+  .quick-picks { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+  .quick-chip {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); padding: 0.3rem 0.8rem; border-radius: 4px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .quick-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* DASHBOARD GRID */
+  .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; display: none; }
+  .dashboard.visible { display: grid; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem;
+  }
+  .card-title {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 1.2rem;
+  }
+
+  /* overview card */
+  .card.full { grid-column: 1/-1; }
+  .overview-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+  .stock-name { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+  .stock-full { color: var(--muted); font-size: 0.85rem; margin-top: 0.2rem; }
+  .price-big { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; }
+  .price-change { font-family: 'DM Mono', monospace; font-size: 0.9rem; }
+  .price-change.up { color: var(--up); }
+  .price-change.dn { color: var(--down); }
+  .overview-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5rem; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  .ov-stat .lbl { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+  .ov-stat .v { font-size: 0.95rem; font-weight: 500; }
+
+  /* candlestick chart */
+  .chart-area { width: 100%; height: 200px; position: relative; overflow: hidden; }
+  .chart-canvas { width: 100%; height: 100%; }
+
+  /* sentiment */
+  .sentiment-gauge { display: flex; flex-direction: column; align-items: center; padding: 1rem 0; }
+  .gauge-arc { position: relative; width: 160px; height: 80px; overflow: hidden; margin-bottom: 1rem; }
+  .gauge-bg, .gauge-fill {
+    position: absolute; top: 0; left: 0; right: 0; bottom: -100%;
+    border-radius: 80px 80px 0 0;
+    transform-origin: center bottom;
+  }
+  .gauge-bg { background: var(--border); }
+  .gauge-fill { background: linear-gradient(135deg, var(--down), var(--up)); transform: rotate(calc(var(--pct) * 1.8deg)); transition: transform 1s ease; }
+  .gauge-needle {
+    position: absolute; bottom: 0; left: 50%;
+    width: 2px; height: 70px; background: var(--text);
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(calc((var(--pct) - 50) * 1.8deg));
+    transition: transform 1s ease;
+    border-radius: 2px 2px 0 0;
+  }
+  .gauge-needle::after { content:''; position:absolute; bottom:-4px; left:50%; transform:translateX(-50%); width:8px;height:8px;border-radius:50%;background:var(--text); }
+  .sentiment-val { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; }
+  .sentiment-label { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; }
+
+  /* prediction */
+  .prediction-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+  .pred-box {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem; text-align: center;
+  }
+  .pred-box.bull { border-color: rgba(0,212,170,0.3); background: rgba(0,212,170,0.05); }
+  .pred-box.bear { border-color: rgba(255,71,87,0.3); background: rgba(255,71,87,0.05); }
+  .pred-dir { font-size: 1.5rem; margin-bottom: 0.3rem; }
+  .pred-pct { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 500; }
+  .pred-lbl { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+  .confidence-bar { background: var(--border); border-radius: 4px; height: 6px; margin-top: 0.8rem; overflow: hidden; }
+  .confidence-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #00e8bb); border-radius: 4px; transition: width 1.2s ease; }
+
+  /* metrics */
+  .metrics-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .metric-row { display: flex; justify-content: space-between; align-items: center; }
+  .metric-row .mk { font-size: 0.85rem; color: var(--muted); }
+  .metric-row .mv { font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 500; }
+  .metric-bar-wrap { width: 100%; background: var(--border); border-radius: 4px; height: 3px; margin-top: 0.2rem; }
+  .metric-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); }
+
+  /* news */
+  .news-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .news-item { display: flex; gap: 0.8rem; align-items: flex-start; padding: 0.8rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.2s; cursor: pointer; }
+  .news-item:hover { border-color: var(--accent); }
+  .news-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 0.3rem; }
+  .news-dot.pos { background: var(--up); }
+  .news-dot.neg { background: var(--down); }
+  .news-dot.neu { background: var(--muted); }
+  .news-text { font-size: 0.82rem; line-height: 1.5; }
+  .news-meta { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-top: 0.3rem; }
+
+  /* loading */
+  .loading-overlay {
+    grid-column: 1/-1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 5rem;
+    display: none;
+  }
+  .loading-overlay.visible { display: flex; }
+  .spinner {
+    width: 40px; height: 40px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin-bottom: 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 4rem;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  footer .logo { font-size: 1.1rem; }
+  footer p { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    nav ul { display: none; }
+    .hero { padding: 8rem 1.5rem 4rem; }
+    .hero-visual { display: none; }
+    .features { padding: 4rem 1.5rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .how-section { padding: 4rem 1.5rem; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    #analysis { padding: 6rem 1.5rem 3rem; }
+    .dashboard { grid-template-columns: 1fr; }
+    .card.full { grid-column: 1; }
+    .overview-stats { grid-template-columns: 1fr 1fr; }
+    footer { padding: 2rem 1.5rem; }
+    .stack-section { padding: 4rem 1.5rem; }
+    .cta-section { padding: 4rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Stock<span>Sense</span></div>
+  <ul>
+    <li><a href="#" onclick="showPage('home')" id="nav-home" class="active">Home</a></li>
+    <li><a href="#" onclick="showPage('analysis')" id="nav-analysis">Analyse</a></li>
+    <li><a href="#" class="nav-cta" onclick="showPage('analysis')">Get Started</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div id="home" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="grid-bg"></div>
+    <div class="ticker-bar">
+      <div class="ticker-track">
+        <span class="ticker-item"><span class="sym">AAPL</span> 189.42 <span class="up">▲ 1.2%</span></span>
+        <span class="ticker-item"><span class="sym">TSLA</span> 248.75 <span class="dn">▼ 0.8%</span></span>
+        <span class="ticker-item"><span class="sym">MSFT</span> 421.30 <span class="up">▲ 0.5%</span></span>
+        <span class="ticker-item"><span class="sym">AMZN</span> 195.60 <span class="up">▲ 2.1%</span></span>
+        <span class="ticker-item"><span class="sym">NVDA</span> 875.20 <span class="up">▲ 3.4%</span></span>
+        <span class="ticker-item"><span class="sym">GOOGL</span> 165.80 <span class="dn">▼ 0.3%</span></span>
+        <span class="ticker-item"><span class="sym">META</span> 512.40 <span class="up">▲ 1.7%</span></span>
+        <span class="ticker-item"><span class="sym">NFLX</span> 632.15 <span class="dn">▼ 1.1%</span></span>
+        <!-- duplicate for loop -->
+        <span class="ticker-item"><span class="sym">AAPL</span> 189.42 <span class="up">▲ 1.2%</span></span>
+        <span class="ticker-item"><span class="sym">TSLA</span> 248.75 <span class="dn">▼ 0.8%</span></span>
+        <span class="ticker-item"><span class="sym">MSFT</span> 421.30 <span class="up">▲ 0.5%</span></span>
+        <span class="ticker-item"><span class="sym">AMZN</span> 195.60 <span class="up">▲ 2.1%</span></span>
+        <span class="ticker-item"><span class="sym">NVDA</span> 875.20 <span class="up">▲ 3.4%</span></span>
+        <span class="ticker-item"><span class="sym">GOOGL</span> 165.80 <span class="dn">▼ 0.3%</span></span>
+        <span class="ticker-item"><span class="sym">META</span> 512.40 <span class="up">▲ 1.7%</span></span>
+        <span class="ticker-item"><span class="sym">NFLX</span> 632.15 <span class="dn">▼ 1.1%</span></span>
+      </div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-tag">AI-Powered Stock Intelligence</div>
+      <h1>Analyse Markets<br>with <em>Precision</em></h1>
+      <p>StockSense combines real-time market data, machine learning predictions, and sentiment analysis to give you an analytical edge in every trade decision.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="showPage('analysis')">Start Analysing</button>
+        <button class="btn-ghost" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Learn More</button>
+      </div>
+    </div>
+
+    <!-- Floating chart -->
+    <div class="hero-visual">
+      <div class="mini-card mini-card-1">
+        <div class="mini-sym">NVDA · NASDAQ</div>
+        <div class="mini-val up" style="color:var(--up)">▲ +3.42%</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">AAPL · NASDAQ</div>
+            <div class="chart-price">$189.42</div>
+          </div>
+          <div class="badge-up">▲ +1.2%</div>
+        </div>
+        <svg class="sparkline" viewBox="0 0 300 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="spark-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#00d4aa" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#00d4aa" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon class="spark-area" points="0,70 30,60 60,65 90,45 120,50 150,35 180,40 210,25 240,30 270,15 300,20 300,80 0,80"/>
+          <polyline class="spark-line" points="0,70 30,60 60,65 90,45 120,50 150,35 180,40 210,25 240,30 270,15 300,20"/>
+        </svg>
+        <div class="chart-stats">
+          <div class="stat-item"><div class="label">Open</div><div class="val">$187.10</div></div>
+          <div class="stat-item"><div class="label">High</div><div class="val">$191.80</div></div>
+          <div class="stat-item"><div class="label">Volume</div><div class="val">62.4M</div></div>
+        </div>
+      </div>
+      <div class="mini-card mini-card-2">
+        <div class="mini-sym">Signal: BUY</div>
+        <div class="mini-val" style="color:var(--up)">Confidence 87%</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="section-label">What We Offer</div>
+    <div class="section-title">Everything you need to trade smarter</div>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">📈</div>
+        <h3>Real-Time Price Data</h3>
+        <p>Live stock prices, OHLCV data, and historical charts pulled directly from market feeds with sub-second latency.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🤖</div>
+        <h3>ML Price Predictions</h3>
+        <p>Machine learning models trained on historical patterns deliver next-day and short-term price movement forecasts.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🧠</div>
+        <h3>Sentiment Analysis</h3>
+        <p>NLP-powered analysis of news articles and social media to gauge market sentiment around any ticker symbol.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <h3>Technical Indicators</h3>
+        <p>RSI, MACD, Bollinger Bands, moving averages and 20+ other indicators computed automatically for every stock.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <h3>Fast REST API</h3>
+        <p>Python FastAPI backend delivers analysis results in milliseconds. Easily integrate with your own trading systems.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🐳</div>
+        <h3>Docker Ready</h3>
+        <p>Containerised with Docker Compose. Deploy the full stack anywhere in minutes — backend, frontend, all services included.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section class="stack-section">
+    <div class="section-label">Tech Stack</div>
+    <div class="section-title">Built with modern tools</div>
+    <div class="stack-pills">
+      <span class="pill accent">Python</span>
+      <span class="pill accent">FastAPI</span>
+      <span class="pill accent">JavaScript</span>
+      <span class="pill">yfinance</span>
+      <span class="pill">scikit-learn</span>
+      <span class="pill">pandas</span>
+      <span class="pill">NumPy</span>
+      <span class="pill">Docker</span>
+      <span class="pill">Docker Compose</span>
+      <span class="pill">REST API</span>
+      <span class="pill">NLP / Sentiment</span>
+      <span class="pill">CSS3</span>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section">
+    <div class="section-label">How It Works</div>
+    <div class="section-title">Analysis in four steps</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h4>Enter Ticker</h4>
+        <p>Type any NSE / BSE or US market ticker symbol into the search box.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h4>Fetch Data</h4>
+        <p>The backend pulls live price data, financials, and recent news via market APIs.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h4>Run Models</h4>
+        <p>ML models and NLP pipelines process the data to generate predictions and sentiment scores.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h4>View Results</h4>
+        <p>Interactive dashboard displays signals, charts, indicators, and news — all in one place.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Ready to analyse your first stock?</h2>
+    <p>Enter any ticker symbol and get a full analysis in seconds.</p>
+    <button class="btn-primary" onclick="showPage('analysis')">Open Analysis Dashboard →</button>
+  </section>
+
+  <footer>
+    <div class="logo">Stock<span>Sense</span></div>
+    <p>Built by kharsha26 · Open Source · GitHub</p>
+    <p style="color:var(--muted)">For informational purposes only. Not financial advice.</p>
+  </footer>
+</div>
+
+<!-- ═══════════════ ANALYSIS ═══════════════ -->
+<div id="analysis" class="page">
+  <div class="analysis-header">
+    <div class="section-label">Analysis Dashboard</div>
+    <h1>Stock Analysis</h1>
+    <p>Enter a ticker symbol to get real-time data, ML predictions, and sentiment insights.</p>
+  </div>
+
+  <div class="search-row">
+    <div class="search-box">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="ticker-input" placeholder="e.g. AAPL, TSLA, INFY.NS" maxlength="12" />
+    </div>
+    <select class="filter-sel" id="period-sel">
+      <option value="1mo">1 Month</option>
+      <option value="3mo" selected>3 Months</option>
+      <option value="6mo">6 Months</option>
+      <option value="1y">1 Year</option>
+    </select>
+    <button class="btn-analyse" onclick="runAnalysis()">Analyse →</button>
+  </div>
+
+  <div class="quick-label">QUICK PICKS</div>
+  <div class="quick-picks">
+    <span class="quick-chip" onclick="quickPick('AAPL')">AAPL</span>
+    <span class="quick-chip" onclick="quickPick('TSLA')">TSLA</span>
+    <span class="quick-chip" onclick="quickPick('MSFT')">MSFT</span>
+    <span class="quick-chip" onclick="quickPick('NVDA')">NVDA</span>
+    <span class="quick-chip" onclick="quickPick('AMZN')">AMZN</span>
+    <span class="quick-chip" onclick="quickPick('INFY.NS')">INFY</span>
+    <span class="quick-chip" onclick="quickPick('RELIANCE.NS')">RELIANCE</span>
+    <span class="quick-chip" onclick="quickPick('TCS.NS')">TCS</span>
+  </div>
+
+  <!-- loading -->
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Fetching market data...</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard" id="dashboard">
+
+    <!-- Overview -->
+    <div class="card full">
+      <div class="card-title">Overview</div>
+      <div class="overview-row">
+        <div>
+          <div class="stock-name" id="ov-sym">-</div>
+          <div class="stock-full" id="ov-name">-</div>
+        </div>
+        <div style="text-align:right">
+          <div class="price-big" id="ov-price">-</div>
+          <div class="price-change" id="ov-change">-</div>
+        </div>
+      </div>
+      <div class="overview-stats">
+        <div class="ov-stat"><div class="lbl">Market Cap</div><div class="v" id="ov-mcap">-</div></div>
+        <div class="ov-stat"><div class="lbl">P/E Ratio</div><div class="v" id="ov-pe">-</div></div>
+        <div class="ov-stat"><div class="lbl">52W High</div><div class="v" id="ov-high">-</div></div>
+        <div class="ov-stat"><div class="lbl">52W Low</div><div class="v" id="ov-low">-</div></div>
+      </div>
+    </div>
+
+    <!-- Price Chart -->
+    <div class="card">
+      <div class="card-title">Price Chart</div>
+      <div class="chart-area">
+        <canvas class="chart-canvas" id="price-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Sentiment -->
+    <div class="card">
+      <div class="card-title">Market Sentiment</div>
+      <div class="sentiment-gauge">
+        <div class="gauge-arc" style="--pct:0" id="gauge">
+          <div class="gauge-bg"></div>
+          <div class="gauge-fill"></div>
+          <div class="gauge-needle"></div>
+        </div>
+        <div class="sentiment-val" id="sent-val">-</div>
+        <div class="sentiment-label" id="sent-label">-</div>
+      </div>
+    </div>
+
+    <!-- Prediction -->
+    <div class="card">
+      <div class="card-title">ML Prediction</div>
+      <div class="prediction-row">
+        <div class="pred-box bull" id="pred-bull">
+          <div class="pred-dir">🐂</div>
+          <div class="pred-pct" id="pred-up-pct">-</div>
+          <div class="pred-lbl">Bullish Signal</div>
+        </div>
+        <div class="pred-box bear" id="pred-bear">
+          <div class="pred-dir">🐻</div>
+          <div class="pred-pct" id="pred-dn-pct">-</div>
+          <div class="pred-lbl">Bearish Signal</div>
+        </div>
+      </div>
+      <div style="margin-top:0.8rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.4rem">
+          <span style="font-size:0.78rem;color:var(--muted)">Model Confidence</span>
+          <span style="font-family:'DM Mono',monospace;font-size:0.78rem" id="conf-val">-</span>
+        </div>
+        <div class="confidence-bar"><div class="confidence-fill" id="conf-bar" style="width:0%"></div></div>
+      </div>
+      <div style="margin-top:1rem;padding:0.8rem;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);margin-bottom:0.3rem">SIGNAL</div>
+        <div style="font-size:0.95rem;font-weight:600" id="pred-signal">-</div>
+      </div>
+    </div>
+
+    <!-- Technical Indicators -->
+    <div class="card">
+      <div class="card-title">Technical Indicators</div>
+      <div class="metrics-list" id="tech-metrics">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- News -->
+    <div class="card full">
+      <div class="card-title">Recent News & Sentiment</div>
+      <div class="news-list" id="news-list">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <footer style="margin-top:4rem">
+    <div class="logo">Stock<span>Sense</span></div>
+    <p>Data is simulated for demo. Connect the Python backend for live results.</p>
+    <p style="color:var(--muted)">Not financial advice.</p>
+  </footer>
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  document.querySelectorAll('nav ul a').forEach(a => a.classList.remove('active'));
+  document.getElementById('nav-' + name)?.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── CANVAS CHART ─────────────────────────────────────────────────
+function drawChart(prices) {
+  const canvas = document.getElementById('price-chart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 200 * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '200px';
+  ctx.scale(dpr, dpr);
+
+  const W = rect.width, H = 200, pad = 16;
+  ctx.clearRect(0, 0, W, H);
+
+  const min = Math.min(...prices), max = Math.max(...prices);
+  const range = max - min || 1;
+  const pts = prices.map((p, i) => ({
+    x: pad + (i / (prices.length - 1)) * (W - pad * 2),
+    y: H - pad - ((p - min) / range) * (H - pad * 2)
+  }));
+
+  // gradient area
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(0,212,170,0.25)');
+  grad.addColorStop(1, 'rgba(0,212,170,0)');
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, H - pad);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length - 1].x, H - pad);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // line
+  ctx.beginPath();
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = '#00d4aa';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // last dot
+  const last = pts[pts.length - 1];
+  ctx.beginPath();
+  ctx.arc(last.x, last.y, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#00d4aa';
+  ctx.fill();
+}
+
+// ─── MOCK DATA ─────────────────────────────────────────────────────
+const mockData = {
+  AAPL:  { name:'Apple Inc.',             price:189.42, chg:'+2.24', chgPct:'+1.20%', mcap:'$2.94T', pe:'31.2', hi:'198.23', lo:'164.08', sent:72, sig:'BUY',   conf:84, upP:'68%', dnP:'32%' },
+  TSLA:  { name:'Tesla Inc.',             price:248.75, chg:'-2.01', chgPct:'-0.80%', mcap:'$790B',  pe:'62.4', hi:'278.98', lo:'138.80', sent:38, sig:'HOLD',  conf:61, upP:'44%', dnP:'56%' },
+  MSFT:  { name:'Microsoft Corporation',  price:421.30, chg:'+2.10', chgPct:'+0.50%', mcap:'$3.13T', pe:'36.8', hi:'430.82', lo:'309.45', sent:79, sig:'BUY',   conf:91, upP:'78%', dnP:'22%' },
+  NVDA:  { name:'NVIDIA Corporation',     price:875.20, chg:'+28.9', chgPct:'+3.42%', mcap:'$2.15T', pe:'65.1', hi:'974.00', lo:'373.20', sent:85, sig:'STRONG BUY', conf:93, upP:'88%', dnP:'12%' },
+  AMZN:  { name:'Amazon.com Inc.',        price:195.60, chg:'+4.02', chgPct:'+2.10%', mcap:'$2.03T', pe:'55.3', hi:'201.20', lo:'118.35', sent:68, sig:'BUY',   conf:79, upP:'71%', dnP:'29%' },
+  'INFY.NS':      { name:'Infosys Limited',      price:1672.00,chg:'-8.40',chgPct:'-0.50%', mcap:'₹6.9T', pe:'27.4', hi:'1930.00', lo:'1350.00', sent:55, sig:'HOLD',  conf:65, upP:'52%', dnP:'48%' },
+  'RELIANCE.NS':  { name:'Reliance Industries',  price:2945.00,chg:'+31.2',chgPct:'+1.07%', mcap:'₹19.9T', pe:'28.1', hi:'3024.00', lo:'2220.30', sent:62, sig:'BUY',   conf:72, upP:'64%', dnP:'36%' },
+  'TCS.NS':       { name:'Tata Consultancy Svcs',price:3988.00,chg:'-22.0',chgPct:'-0.55%', mcap:'₹14.4T', pe:'30.5', hi:'4255.00', lo:'3311.00', sent:58, sig:'HOLD',  conf:68, upP:'55%', dnP:'45%' },
+};
+
+const mockNews = {
+  AAPL: [
+    { t:'Apple iPhone 16 sales beat analyst expectations in Q1', s:'pos', src:'Bloomberg', time:'2h ago' },
+    { t:'Apple Vision Pro gaining enterprise traction, new partnerships announced', s:'pos', src:'Reuters', time:'4h ago' },
+    { t:'Supply chain normalisation expected to boost margins in FY25', s:'pos', src:'WSJ', time:'8h ago' },
+    { t:'EU antitrust investigation into App Store continues amid ongoing litigation', s:'neg', src:'FT', time:'1d ago' },
+  ],
+  TSLA: [
+    { t:'Tesla Cybertruck deliveries face delays due to manufacturing issues', s:'neg', src:'Reuters', time:'1h ago' },
+    { t:'Tesla FSD v12 receives positive early reviews from test drivers', s:'pos', src:'Electrek', time:'5h ago' },
+    { t:'Price cuts in China market continue to weigh on margin outlook', s:'neg', src:'Bloomberg', time:'12h ago' },
+    { t:'Tesla energy division sees record Q4 storage deployments', s:'pos', src:'Tesla IR', time:'2d ago' },
+  ],
+  MSFT: [
+    { t:'Microsoft Azure AI revenue up 53% YoY, cloud growth accelerates', s:'pos', src:'Bloomberg', time:'3h ago' },
+    { t:'Copilot integration across Office suite drives productivity upgrades', s:'pos', src:'WSJ', time:'6h ago' },
+    { t:'Activision Blizzard integration tracking ahead of synergy targets', s:'pos', src:'Reuters', time:'1d ago' },
+  ],
+  DEFAULT: [
+    { t:'Strong earnings beat expectations, revenue guidance raised', s:'pos', src:'Bloomberg', time:'2h ago' },
+    { t:'Analyst upgrades stock citing improving fundamentals', s:'pos', src:'Reuters', time:'5h ago' },
+    { t:'Market volatility remains a near-term risk factor to watch', s:'neu', src:'FT', time:'8h ago' },
+    { t:'Institutional investors increase positions ahead of earnings', s:'pos', src:'WSJ', time:'1d ago' },
+  ]
+};
+
+const indicators = (d) => [
+  { k:'RSI (14)',        v: d.sent > 65 ? '72.4' : d.sent > 45 ? '54.8' : '38.2', pct: d.sent > 65 ? 72 : d.sent > 45 ? 55 : 38 },
+  { k:'MACD Signal',    v: d.sig.includes('BUY') ? 'Bullish Crossover' : 'Neutral', pct: d.conf },
+  { k:'50d MA vs Price',v: d.sig.includes('BUY') ? 'Above ↑' : 'Below ↓', pct: d.sig.includes('BUY') ? 70 : 35 },
+  { k:'Volume Trend',   v: 'Above Average', pct: 65 },
+  { k:'Bollinger %B',   v: d.sent > 60 ? '0.78' : '0.42', pct: d.sent > 60 ? 78 : 42 },
+];
+
+// ─── GENERATE MOCK PRICE SERIES ───────────────────────────────────
+function genPrices(base, n = 60) {
+  const prices = [base];
+  for (let i = 1; i < n; i++) {
+    const delta = (Math.random() - 0.48) * base * 0.018;
+    prices.push(Math.max(prices[i - 1] + delta, base * 0.7));
+  }
+  return prices;
+}
+
+// ─── ANALYSIS FLOW ────────────────────────────────────────────────
+let analysisTimer;
+function quickPick(sym) {
+  document.getElementById('ticker-input').value = sym;
+  runAnalysis();
+}
+
+function runAnalysis() {
+  const raw = document.getElementById('ticker-input').value.trim().toUpperCase();
+  if (!raw) { alert('Please enter a ticker symbol.'); return; }
+
+  document.getElementById('dashboard').classList.remove('visible');
+  const loader = document.getElementById('loading');
+  loader.classList.add('visible');
+
+  const steps = [
+    'Fetching market data...',
+    'Computing technical indicators...',
+    'Running ML prediction model...',
+    'Analysing news sentiment...',
+    'Building dashboard...'
+  ];
+  let si = 0;
+  clearInterval(analysisTimer);
+  analysisTimer = setInterval(() => {
+    document.getElementById('loading-text').textContent = steps[Math.min(si++, steps.length - 1)];
+  }, 450);
+
+  setTimeout(() => {
+    clearInterval(analysisTimer);
+    loader.classList.remove('visible');
+    renderDashboard(raw);
+    document.getElementById('dashboard').classList.add('visible');
+  }, 2400);
+}
+
+function renderDashboard(sym) {
+  const d = mockData[sym] || {
+    name: sym + ' Corporation', price: 150 + Math.random() * 200,
+    chg: '+1.20', chgPct: '+0.80%', mcap: '$200B', pe: '25.0',
+    hi: '180.00', lo: '120.00', sent: 55, sig: 'HOLD', conf: 65, upP: '55%', dnP: '45%'
+  };
+
+  // Overview
+  document.getElementById('ov-sym').textContent = sym;
+  document.getElementById('ov-name').textContent = d.name;
+  document.getElementById('ov-price').textContent = typeof d.price === 'number'
+    ? (sym.includes('.NS') ? '₹' : '$') + d.price.toLocaleString() : d.price;
+  const chgEl = document.getElementById('ov-change');
+  chgEl.textContent = d.chg + ' (' + d.chgPct + ')';
+  chgEl.className = 'price-change ' + (d.chg.startsWith('-') ? 'dn' : 'up');
+  document.getElementById('ov-mcap').textContent = d.mcap;
+  document.getElementById('ov-pe').textContent = d.pe + 'x';
+  document.getElementById('ov-high').textContent = (sym.includes('.NS') ? '₹' : '$') + d.hi;
+  document.getElementById('ov-low').textContent  = (sym.includes('.NS') ? '₹' : '$') + d.lo;
+
+  // Chart
+  setTimeout(() => drawChart(genPrices(d.price)), 100);
+
+  // Sentiment gauge
+  const gauge = document.getElementById('gauge');
+  gauge.style.setProperty('--pct', d.sent);
+  document.getElementById('sent-val').textContent = d.sent + '/100';
+  document.getElementById('sent-label').textContent =
+    d.sent >= 70 ? 'Bullish Sentiment' : d.sent >= 50 ? 'Neutral Sentiment' : 'Bearish Sentiment';
+  document.getElementById('sent-val').style.color =
+    d.sent >= 70 ? 'var(--up)' : d.sent >= 50 ? 'var(--text)' : 'var(--down)';
+
+  // Prediction
+  document.getElementById('pred-up-pct').textContent = d.upP;
+  document.getElementById('pred-dn-pct').textContent = d.dnP;
+  document.getElementById('conf-val').textContent = d.conf + '%';
+  const confBar = document.getElementById('conf-bar');
+  confBar.style.width = '0%';
+  setTimeout(() => { confBar.style.width = d.conf + '%'; }, 200);
+  const sigEl = document.getElementById('pred-signal');
+  sigEl.textContent = d.sig;
+  sigEl.style.color = d.sig.includes('BUY') ? 'var(--up)' : d.sig === 'SELL' ? 'var(--down)' : 'var(--text)';
+
+  // Technical indicators
+  const metricsEl = document.getElementById('tech-metrics');
+  metricsEl.innerHTML = indicators(d).map(m => `
+    <div>
+      <div class="metric-row">
+        <span class="mk">${m.k}</span>
+        <span class="mv">${m.v}</span>
+      </div>
+      <div class="metric-bar-wrap">
+        <div class="metric-bar-fill" style="width:${m.pct}%"></div>
+      </div>
+    </div>
+  `).join('');
+
+  // News
+  const news = mockNews[sym] || mockNews.DEFAULT;
+  document.getElementById('news-list').innerHTML = news.map(n => `
+    <div class="news-item">
+      <div class="news-dot ${n.s}"></div>
+      <div>
+        <div class="news-text">${n.t}</div>
+        <div class="news-meta">${n.src} · ${n.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// allow Enter key
+document.getElementById('ticker-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runAnalysis();
+});
+
+window.addEventListener('resize', () => {
+  const sym = document.getElementById('ov-sym').textContent;
+  if (sym !== '-') {
+    const d = mockData[sym] || { price: 150 };
+    drawChart(genPrices(d.price));
+  }
+});
+</script>
+</body>
+</html>
